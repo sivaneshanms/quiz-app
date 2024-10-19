@@ -15,6 +15,10 @@ const User = sequelize.define("User", {
         type: DataTypes.ENUM("Teacher", "Student"),
         allowNull: false,
     },
+    score: {
+        type: DataTypes.SMALLINT,
+        defaultValue: 0,
+    },
 });
 
 module.exports = User;

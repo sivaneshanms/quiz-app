@@ -3,6 +3,8 @@ const express = require("express");
 const Question = require("../models/Question"); // Import models
 const Option = require("../models/Option");
 const { authenticateJWT } = require("../middlewares/authMiddleware"); // Middleware to check JWT
+const User = require("../models/User");
+const { where, Sequelize } = require("sequelize");
 
 const router = express.Router();
 
@@ -58,26 +60,103 @@ router.get('/questions/:id', authenticateJWT, async (req, res) => {
       return res.status(404).json({ message: 'Question not found' });
     }
 
-    res.json(question);
+    res.json({
+        role: req.user.role,
+        questions: [question],
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching question' });
   }
 });
 
+// routes/questionRoutes.js
+// Update question (Teacher-only)
+router.put('/questions/:id', authenticateJWT, async (req, res) => {
+  if (req.user.role !== 'teacher') {
+    return res.status(403).json({ message: "Only teachers can update questions" });
+  }
+
+  const { text, options, correctOptionId } = req.body;
+  const { id } = req.params;
+
+  try {
+    const question = await Question.findByPk(id);
+    if (!question || question.teacherId !== req.user.id) {
+      return res.status(404).json({ message: 'Question not found or unauthorized' });
+    }
+
+    await question.update({ text, correct_option: correctOptionId });
+
+    // Update options (replace all options)
+    await Option.destroy({ where: { questionId: id } });
+    await Promise.all(
+      options.map(optionText =>
+        Option.create({
+          text: optionText,
+          questionId: id
+        })
+      )
+    );
+
+    res.json({ message: "Question updated successfully", question });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating question', error });
+  }
+});
+
+// routes/questionRoutes.js
+// Delete question (Teacher-only)
+router.delete('/questions/:id', authenticateJWT, async (req, res) => {
+  if (req.user.role !== 'Teacher') {
+    return res.status(403).json({ message: "Only teachers can delete questions" });
+  }
+
+  const { id } = req.params;
+
+  try {
+    const question = await Question.findByPk(id);
+    console.log('question', question)
+    if (!question) {
+        console.log('req.user.id', req.user.id)
+      return res.status(404).json({ message: 'Question not found' });
+    }
+
+    await question.destroy();
+    res.json({ message: "Question deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting question', error });
+  }
+});
+
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 // Get a single question with its options
 router.get('/questions', authenticateJWT, async (req, res) => {
     console.log('came in')
   try {
-    const question = await Question.findAll({
-      include: [{ model: Option, as: 'options' }], // Include associated options
-    });
+      const questions = await Question.findAll({
+          include: [{ model: Option, as: "options" }], // Include associated options
+      });
 
-    if (!question) {
-      return res.status(404).json({ message: 'Questions not found' });
-    }
 
-    res.json(question);
+      if (!questions) {
+          return res.status(404).json({ message: "Questions not found" });
+      }
+      
+      const shuffledQuestions = shuffle(questions);
+
+      // Send back the shuffled questions along with the user role
+      res.json({
+          role: req.user.role,
+          questions: shuffledQuestions,
+      });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching question' });
@@ -90,36 +169,53 @@ router.post("/submit-quiz", authenticateJWT, async (req, res) => {
 
     try {
         let score = 0;
+        let correctAnswers = {};
 
         // Loop through submitted answers and calculate score
         for (const answer in answers) {
-            console.log('answer', answers[answer])
-            const question = await Question.findOne({
-                where: {
-                    id: answer,
-                    correct_option: answers[answer],
-                },
-                include: [{ model: Option, as: "options" }],
+            console.log('answer', answer)
+            const question = await Question.findByPk(answer,{
+                include: [{ model: Option, as: "options" }], // Ensure options are included
             });
 
-                            console.log("question", question);
+                            console.log("question", question.options);
 
 
             // Find correct answer for the question
-            // const correctOption = question?.options?.find(
-            //     (option) => option.isCorrect
-            // );
-            //                 console.log("correctOption", correctOption);
+            const correctOption = question?.options?.find(
+                (option) => option.isCorrect
+            );
+                            console.log("correctOption", correctOption?.dataValues);
 
-            if (question) {
+            if (correctOption && correctOption.id == answers[answer]) {
                 score++;
             }
+            correctAnswers[answer] = correctOption.id;
+            console.log('correctAnswers', correctAnswers)
         }
+        await User.update({score}, { where: { id: req.user.id} })
 
-        res.json({ message: "Quiz submitted", score });
+        res.json({ message: "Quiz submitted", score, correctAnswers });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Error submitting quiz" });
+    }
+});
+
+router.get("/leaderboard", async (req, res) => {
+    try {
+        const users = await User.findAll({
+            where: {
+                role: 'Student'
+            },
+            attributes: ["id", "username", "score"], // Adjust based on your User model attributes
+            order: [["score", "DESC"]], // Order by score descending
+        });
+
+        res.json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error fetching leaderboard" });
     }
 });
 
