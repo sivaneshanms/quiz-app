@@ -13,6 +13,14 @@ function Login() {
             const { data } = await loginAPI({ username, password });
             login(data.token, data.role); // Store JWT and role
             alert("Login successful!");
+            if (data.role === "Teacher") {
+                // Redirect to teacher dashboard
+                window.location.href = "/teacher";
+            } else {
+                // Redirect to quiz page for students
+                window.location.href = "/student-quiz";
+            }
+
         } catch (error) {
             alert("Login failed");
         }
@@ -35,12 +43,6 @@ function Login() {
                 />
                 <button onClick={handleLogin}>Login</button>
             </div>
-            <Link to="/dashboard">
-                <button>Go to Dashboard</button>
-            </Link>
-            <Link to="/questions">
-                <button>View Questions</button>
-            </Link>
             <Link to="/register">
                 <button>Register</button>
             </Link>

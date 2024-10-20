@@ -73,16 +73,20 @@ router.get('/questions/:id', authenticateJWT, async (req, res) => {
 // routes/questionRoutes.js
 // Update question (Teacher-only)
 router.put('/questions/:id', authenticateJWT, async (req, res) => {
-  if (req.user.role !== 'teacher') {
+  console.log('req.body in update', req.body)
+
+  if (req.user.role !== 'Teacher') {
+    console.log('req.user.role', req.user.role)
     return res.status(403).json({ message: "Only teachers can update questions" });
   }
 
-  const { text, options, correctOptionId } = req.body;
+  const { text, options, correctOptionId, isCorrect } = req.body;
   const { id } = req.params;
 
   try {
     const question = await Question.findByPk(id);
-    if (!question || question.teacherId !== req.user.id) {
+    console.log('question', question)
+    if (!question) {
       return res.status(404).json({ message: 'Question not found or unauthorized' });
     }
 
@@ -90,17 +94,23 @@ router.put('/questions/:id', authenticateJWT, async (req, res) => {
 
     // Update options (replace all options)
     await Option.destroy({ where: { questionId: id } });
+    console.log('Option')
     await Promise.all(
-      options.map(optionText =>
+      options.map(optionText => {
+        console.log('optionText', optionText)
         Option.create({
           text: optionText,
-          questionId: id
+          questionId: id,
+          isCorrect
         })
+      }
       )
     );
+    console.log('done);')
 
     res.json({ message: "Question updated successfully", question });
   } catch (error) {
+    console.log('error', error)
     res.status(500).json({ message: 'Error updating question', error });
   }
 });
@@ -178,7 +188,7 @@ router.post("/submit-quiz", authenticateJWT, async (req, res) => {
                 include: [{ model: Option, as: "options" }], // Ensure options are included
             });
 
-                            console.log("question", question.options);
+            console.log("question", question.options);
 
 
             // Find correct answer for the question
@@ -202,7 +212,7 @@ router.post("/submit-quiz", authenticateJWT, async (req, res) => {
     }
 });
 
-router.get("/leaderboard", async (req, res) => {
+router.get("/leaderboard", authenticateJWT, async (req, res) => {
     try {
         const users = await User.findAll({
             where: {
@@ -212,7 +222,7 @@ router.get("/leaderboard", async (req, res) => {
             order: [["score", "DESC"]], // Order by score descending
         });
 
-        res.json(users);
+        res.json({users,user:req.user});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Error fetching leaderboard" });

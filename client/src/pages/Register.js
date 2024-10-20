@@ -37,12 +37,6 @@ function Register() {
                 </select>
                 <button onClick={handleRegister}>Register</button>
             </div>
-            <Link to="/dashboard">
-                <button>Go to Dashboard</button>
-            </Link>
-            <Link to="/questions">
-                <button>View Questions</button>
-            </Link>
             <Link to="/login">
                 <button>Login</button>
             </Link>

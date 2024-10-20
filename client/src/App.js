@@ -16,11 +16,11 @@ function App() {
         <UserProvider>
             <Router>
                 <Routes>
-                    <Route path="/" element={<Navigate to="/dashboard" />} />
+                    <Route path="/" element={<Navigate to="/login" />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/questions" element={<QuestionsList />} />{" "}
+                    <Route path="/teacher" element={<Dashboard />} />
+                    <Route path="/student-quiz" element={<QuestionsList />} />{" "}
                     {/* Add route for QuestionsList */}
                 </Routes>
             </Router>

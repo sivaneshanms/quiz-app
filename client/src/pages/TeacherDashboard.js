@@ -252,22 +252,6 @@ function TeacherDashboard() {
                     </Card>
                 ))
             )}
-
-            <Link to="/login">
-                <Button variant="contained" sx={{ mt: 2 }}>
-                    Login
-                </Button>
-            </Link>
-            <Link to="/questions">
-                <Button variant="contained" sx={{ mt: 2, ml: 2 }}>
-                    View Questions
-                </Button>
-            </Link>
-            <Link to="/register">
-                <Button variant="contained" sx={{ mt: 2, ml: 2 }}>
-                    Register
-                </Button>
-            </Link>
         </Box>
     );
 }
