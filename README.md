@@ -36,6 +36,9 @@ npm install
 cd server
 npm install
 
+# To Add sample quiz questions
+npm run seed
+
 # 3. Configure Environment Variables
 # Frontend
 
@@ -60,7 +63,6 @@ npm start
 # Backend
 
 cd server
-npx sequelize db:migrate
 npm run dev
 
 # 5. Access the Application
