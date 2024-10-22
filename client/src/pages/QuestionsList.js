@@ -40,7 +40,7 @@ const QuestionsList = () => {
                 const token = localStorage.getItem("token");
 
                 const response = await axios.get(
-                    "http://localhost:3001/api/questions",
+                    `${process.env.REACT_APP_API_URL}/questions`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`, // Attach the token in the Authorization header
@@ -88,7 +88,7 @@ const QuestionsList = () => {
             }
             const token = localStorage.getItem("token");
             const response = await axios.post(
-                "http://localhost:3001/api/submit-quiz",
+               `${process.env.REACT_APP_API_URL}/submit-quiz`,
                 { answers },
                 {
                     headers: {
@@ -110,7 +110,7 @@ const QuestionsList = () => {
         try {
             const token = localStorage.getItem("token");
             const response = await axios.get(
-                "http://localhost:3001/api/leaderboard",
+                `${process.env.REACT_APP_API_URL}/leaderboard`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -129,7 +129,7 @@ const QuestionsList = () => {
         try {
             const token = localStorage.getItem("token");
             await axios.delete(
-                `http://localhost:3001/api/questions/${questionId}`,
+                `${process.env.REACT_APP_API_URL}/questions/${questionId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
