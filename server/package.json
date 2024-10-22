@@ -4,8 +4,8 @@
     "main": "app.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "npx tsc",
-        "start": "node dist/app.js",
+        "build": "npm i",
+        "start": "node app.js",
         "seed": "node seeders/insertQuizData.js"
     },
     "keywords": [],
