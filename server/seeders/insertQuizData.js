@@ -8,51 +8,87 @@ const quizData = [
         question_text:
             "What is the correct way to define a Sequelize model in Node.js?",
         options: [
-            "sequelize.define('ModelName', { attributes }, { options });",
-            "sequelize.model('ModelName', { attributes }, { options });",
-            "sequelize.create('ModelName', { attributes }, { options });",
-            "sequelize.table('ModelName', { attributes }, { options });",
+            {
+                text: "sequelize.define('ModelName', { attributes }, { options });",
+                isCorrect: true,
+            },
+            {
+                text: "sequelize.model('ModelName', { attributes }, { options });",
+                isCorrect: false,
+            },
+            {
+                text: "sequelize.create('ModelName', { attributes }, { options });",
+                isCorrect: false,
+            },
+            {
+                text: "sequelize.table('ModelName', { attributes }, { options });",
+                isCorrect: false,
+            },
         ],
-        correct_option: 1,
     },
     {
         question_text:
             "How do you create a route in Express to fetch all users from a MySQL database using Sequelize?",
         options: [
-            "app.get('/users', (req, res) => User.fetchAll());",
-            "app.get('/users', (req, res) => User.findAll().then(users => res.json(users)));",
-            "app.get('/users', (req, res) => User.find().then(users => res.json(users)));",
-            "app.get('/users', (req, res) => User.getAll().then(users => res.json(users)));",
+            {
+                text: "app.get('/users', (req, res) => User.fetchAll());",
+                isCorrect: false,
+            },
+            {
+                text: "app.get('/users', (req, res) => User.findAll().then(users => res.json(users)));",
+                isCorrect: true,
+            },
+            {
+                text: "app.get('/users', (req, res) => User.find().then(users => res.json(users)));",
+                isCorrect: false,
+            },
+            {
+                text: "app.get('/users', (req, res) => User.getAll().then(users => res.json(users)));",
+                isCorrect: false,
+            },
         ],
-        correct_option: 2,
     },
     {
         question_text:
             "Which hook in React is used for performing side effects in function components?",
-        options: ["useContext", "useReducer", "useEffect", "useState"],
-        correct_option: 3,
+        options: [
+            { text: "useContext", isCorrect: false },
+            { text: "useReducer", isCorrect: false },
+            { text: "useEffect", isCorrect: true },
+            { text: "useState", isCorrect: false },
+        ],
     },
     {
         question_text:
             "How can you define a one-to-many relationship between two models in Sequelize?",
         options: [
-            "ModelA.hasOne(ModelB);",
-            "ModelA.belongsTo(ModelB);",
-            "ModelA.belongsToMany(ModelB);",
-            "ModelA.hasMany(ModelB);",
+            { text: "ModelA.hasOne(ModelB);", isCorrect: false },
+            { text: "ModelA.belongsTo(ModelB);", isCorrect: false },
+            { text: "ModelA.belongsToMany(ModelB);", isCorrect: false },
+            { text: "ModelA.hasMany(ModelB);", isCorrect: true },
         ],
-        correct_option: 4,
     },
     {
         question_text:
             "What is the purpose of res.status(500) in an Express.js route?",
         options: [
-            "To send a success message to the client.",
-            "To indicate that the request has been redirected.",
-            "To send a server error response to the client.",
-            "To send a forbidden access response to the client.",
+            {
+                text: "To send a success message to the client.",
+                isCorrect: false,
+            },
+            {
+                text: "To indicate that the request has been redirected.",
+                isCorrect: false,
+            },
+            {
+                text: "To send a server error response to the client.",
+                isCorrect: true,
+            },
+            {
+                text: "To send a forbidden access response to the client.",
+                isCorrect: false,
+            },
         ],
-        correct_option: 3,
     },
 ];
 
@@ -63,13 +99,13 @@ const insertQuizData = async () => {
         for (const data of quizData) {
             const question = await Question.create({
                 text: data.question_text,
-                correct_option: data.correct_option,
             });
 
-            for (const optionText of data.options) {
+            for (const option of data.options) {
                 await Option.create({
-                    text: optionText,
-                    questionId: question.id,
+                    text: option.text,
+                    isCorrect: option.isCorrect,
+                    questionId: question.id, // Associate option with the correct question
                 });
             }
         }

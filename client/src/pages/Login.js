@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import { login as loginAPI } from "../api/api";
 import { UserContext } from "../context/UserContext";
 import { Link } from "react-router-dom";
+import { TextField, Button, Typography, Container, Box } from "@mui/material";
 
 function Login() {
     const [username, setUsername] = useState("");
@@ -20,33 +21,57 @@ function Login() {
                 // Redirect to quiz page for students
                 window.location.href = "/student-quiz";
             }
-
         } catch (error) {
             alert("Login failed");
         }
     };
 
     return (
-        <>
-            <div>
-                <h2>Login</h2>
-                <input
+        <Container maxWidth="sm">
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    minHeight: "100vh",
+                }}
+            >
+                <Typography variant="h4" gutterBottom>
+                    Login
+                </Typography>
+                <TextField
+                    label="Username"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Username"
                 />
-                <input
+                <TextField
+                    label="Password"
+                    variant="outlined"
                     type="password"
+                    fullWidth
+                    margin="normal"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
                 />
-                <button onClick={handleLogin}>Login</button>
-            </div>
-            <Link to="/register">
-                <button>Register</button>
-            </Link>
-        </>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    sx={{ mt: 2 }}
+                    onClick={handleLogin}
+                >
+                    Login
+                </Button>
+                <Typography variant="body2" sx={{ mt: 2 }}>
+                    Don’t have an account?{" "}
+                    <Link to="/register">Register here</Link>
+                </Typography>
+            </Box>
+        </Container>
     );
 }
 

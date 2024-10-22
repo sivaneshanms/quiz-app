@@ -95,18 +95,18 @@ router.put('/questions/:id', authenticateJWT, async (req, res) => {
     // Update options (replace all options)
     await Option.destroy({ where: { questionId: id } });
     console.log('Option')
-    await Promise.all(
+    let resp = await Promise.all(
       options.map(optionText => {
         console.log('optionText', optionText)
         Option.create({
-          text: optionText,
+          text: optionText.text,
           questionId: id,
-          isCorrect
+          isCorrect: optionText.isCorrect
         })
       }
       )
     );
-    console.log('done);')
+    console.log("updated!", resp);
 
     res.json({ message: "Question updated successfully", question });
   } catch (error) {

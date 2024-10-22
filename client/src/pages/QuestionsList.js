@@ -20,6 +20,7 @@ import {
     Paper,
 } from "@mui/material";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 const QuestionsList = () => {
     const [questions, setQuestions] = useState([]);
@@ -30,6 +31,7 @@ const QuestionsList = () => {
     const [submittedAnswers, setSubmittedAnswers] = useState({}); // To track the submitted answers
     const [leaderboard, setLeaderboard] = useState([]); // State for leaderboard
     const [currentUser, setCurrentUser] = useState({})
+    const [score, setScore] = useState(null)
 
     useEffect(() => {
         // Fetch the questions and user role from the backend
@@ -64,6 +66,15 @@ const QuestionsList = () => {
         });
     };
 
+    const handleLogout = () => {
+        // Clear the stored token (JWT) and role from localStorage or context
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+
+        // Redirect the user to the login page
+        window.location.href = "/login";
+    };
+
     const handleSubmit = async () => {
         try {
 
@@ -88,6 +99,8 @@ const QuestionsList = () => {
             setSubmitted(true);
             setSubmittedAnswers(response.data.correctAnswers); // Assume the backend returns correct answers in response
             fetchLeaderboard();
+            setScore(response.data.score);
+            scrollToTop();
         } catch (error) {
             console.error("Error submitting answers:", error);
         }
@@ -131,6 +144,13 @@ const QuestionsList = () => {
         }
     };
 
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth", // This adds smooth scrolling
+        });
+    };
+
     if (loading) {
         return (
             <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
@@ -141,49 +161,99 @@ const QuestionsList = () => {
 
     return (
         <>
+            {submitted && (
+                <Typography
+                    variant="h6"
+                    sx={{ mt: 3, textAlign: "center", color: "green" }}
+                >
+                    Quiz submitted successfully!
+                </Typography>
+            )}
+
+            {score && score < 3 && (
+                <Typography
+                    variant="h6"
+                    sx={{ mt: 2, textAlign: "center", color: "orange" }}
+                >
+                    Keep practicing! You can improve your score.
+                </Typography>
+            )}
+
+            {score && score > 2 && score < 5 && (
+                <Typography
+                    variant="h6"
+                    sx={{ mt: 2, textAlign: "center", color: "blue" }}
+                >
+                    Good job! You have a decent understanding of the material.
+                </Typography>
+            )}
+
+            {score && score >= 5 && (
+                <Typography
+                    variant="h6"
+                    sx={{ mt: 2, textAlign: "center", color: "green" }}
+                >
+                    Excellent work! You're mastering the material!
+                </Typography>
+            )}
+
             {/* Leaderboard Table */}
-            <Typography variant="h5" sx={{ mt: 3, textAlign: "center" }}>
-                Leaderboard
-            </Typography>
-            <TableContainer component={Paper} sx={{ mt: 2 }}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell align="center">Rank</TableCell>
-                            <TableCell align="center">Username</TableCell>
-                            <TableCell align="center">Score</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {leaderboard.map((user, index) => (
-                            <TableRow
-                                key={user.id}
-                                sx={{
-                                    backgroundColor:
-                                        user.id === currentUser.id
-                                            ? "lightblue"
-                                            : "inherit", // Highlight the current user's row
-                                    fontWeight:
-                                        user.id === currentUser.id
-                                            ? "bold"
-                                            : "normal",
-                                }}
-                            >
-                                <TableCell align="center">
-                                    {index + 1}
-                                </TableCell>
-                                <TableCell align="center">
-                                    {user.username}
-                                    {user.id === currentUser.id && " (You)"}
-                                </TableCell>
-                                <TableCell align="center">
-                                    {user.score}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+            {submitted && (
+                <>
+                    <Typography
+                        variant="h5"
+                        sx={{ mt: 3, textAlign: "center" }}
+                    >
+                        Leaderboard
+                    </Typography>
+                    <TableContainer component={Paper} sx={{ mt: 2 }}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell align="center">Rank</TableCell>
+                                    <TableCell align="center">
+                                        Username
+                                    </TableCell>
+                                    <TableCell align="center">Score</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {leaderboard.map((user, index) => (
+                                    <TableRow
+                                        key={user.id}
+                                        sx={{
+                                            backgroundColor:
+                                                user.id === currentUser.id
+                                                    ? "lightblue"
+                                                    : "inherit", // Highlight the current user's row
+                                            fontWeight:
+                                                user.id === currentUser.id
+                                                    ? "bold"
+                                                    : "normal",
+                                        }}
+                                    >
+                                        <TableCell align="center">
+                                            {index + 1}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {user.username}
+                                            {user.id === currentUser.id &&
+                                                " (You)"}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {user.score}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </>
+            )}
+
+            <h3 style={{ marginTop: "30px" }} align="center">
+                Full Stack Developer Quiz
+            </h3>
 
             <Box sx={{ maxWidth: 800, margin: "auto", mt: 5 }}>
                 {questions.map((question, index) => {
@@ -309,16 +379,13 @@ const QuestionsList = () => {
                         Submit Answers
                     </Button>
                 )}
-
-                {submitted && (
-                    <Typography
-                        variant="h6"
-                        sx={{ mt: 3, textAlign: "center", color: "green" }}
-                    >
-                        Quiz submitted successfully!
-                    </Typography>
-                )}
             </Box>
+            <Typography variant="body2" sx={{ mt: 2 }} align="center">
+                Want to log out?{" "}
+                <Link to="#" onClick={handleLogout}>
+                    Logout
+                </Link>
+            </Typography>
         </>
     );
 };

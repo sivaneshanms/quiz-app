@@ -12,6 +12,10 @@ import {
     Typography,
     CircularProgress,
     Box,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    Select,
 } from "@mui/material";
 
 function TeacherDashboard() {
@@ -27,6 +31,19 @@ function TeacherDashboard() {
     const [questionIdToEdit, setQuestionIdToEdit] = useState(null);
     const [loading, setLoading] = useState(false);
     const { id } = useParams();
+    const [correctAnswerIndex, setCorrectAnswerIndex] = React.useState(null);
+
+    const handleCorrectAnswerChange = (event) => {
+        const index = event.target.value;
+        setCorrectAnswerIndex(index);
+        handleOptionChange(index, "isCorrect", true);
+        // Mark all other options as incorrect
+        options.forEach((_, i) => {
+            if (i !== index) {
+                handleOptionChange(i, "isCorrect", false);
+            }
+        });
+    };
 
     // Fetch all questions
     useEffect(() => {
@@ -72,6 +89,15 @@ function TeacherDashboard() {
         const newOptions = [...options];
         newOptions[index][key] = value;
         setOptions(newOptions);
+    };
+
+    const handleLogout = () => {
+        // Clear the stored token (JWT) and role from localStorage or context
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+
+        // Redirect the user to the login page
+        window.location.href = "/login";
     };
 
     // Handle question submit (create or edit)
@@ -150,109 +176,147 @@ function TeacherDashboard() {
     };
 
     return (
-        <Box sx={{ maxWidth: 800, margin: "auto", mt: 5 }}>
-            <h2>{editMode ? "Edit Question" : "Create a New Quiz Question"}</h2>
-            <form onSubmit={handleSubmit}>
-                <TextField
-                    fullWidth
-                    label="Question"
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="Enter your question"
-                    required
-                    sx={{ mb: 2 }}
-                />
-                {options.map((option, index) => (
-                    <div key={index}>
-                        <TextField
-                            fullWidth
-                            label={`Option ${index + 1}`}
-                            value={option.text}
-                            onChange={(e) =>
-                                handleOptionChange(
-                                    index,
-                                    "text",
-                                    e.target.value
-                                )
-                            }
-                            required
-                            sx={{ mb: 1 }}
-                        />
-                        <FormControlLabel
-                            control={
-                                <Radio
-                                    checked={option.isCorrect}
-                                    onChange={() =>
-                                        handleOptionChange(
-                                            index,
-                                            "isCorrect",
-                                            true
-                                        )
-                                    }
-                                />
-                            }
-                            label="Correct Answer"
-                        />
-                    </div>
-                ))}
-                <Button
-                    variant="contained"
-                    color="primary"
-                    type="submit"
-                    fullWidth
+        <>
+            <Box sx={{ maxWidth: 800, margin: "auto", mt: 5 }}>
+                <Typography variant="h5" align="center">
+                    {editMode ? "Edit Question" : "Create a New Quiz Question"}
+                </Typography>
+                <Box
+                    component="form"
+                    onSubmit={handleSubmit}
+                    sx={{
+                        maxWidth: 400, // Set a maximum width for the form
+                        margin: "auto", // Center the form
+                        mt: 5,
+                        p: 2,
+                        borderRadius: 1,
+                        boxShadow: 1,
+                        bgcolor: "ivory",
+                    }}
                 >
-                    {editMode ? "Update Question" : "Create Question"}
-                </Button>
-                {editMode && (
-                    <Button
-                        variant="outlined"
-                        color="secondary"
-                        onClick={resetForm}
-                        fullWidth
-                        sx={{ mt: 1 }}
+                    <Typography
+                        variant="h6"
+                        sx={{ mb: 2, textAlign: "center" }}
                     >
-                        Cancel Edit
+                        {editMode ? "Edit Question" : "Create Question"}
+                    </Typography>
+
+                    <TextField
+                        fullWidth
+                        label="Question"
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
+                        placeholder="Enter your question"
+                        required
+                        sx={{ mb: 2 }}
+                    />
+
+                    {options.map((option, index) => (
+                        <Box key={index} sx={{ mb: 2 }}>
+                            <TextField
+                                fullWidth
+                                label={`Option ${index + 1}`}
+                                value={option.text}
+                                onChange={(e) =>
+                                    handleOptionChange(
+                                        index,
+                                        "text",
+                                        e.target.value
+                                    )
+                                }
+                                required
+                            />
+                        </Box>
+                    ))}
+
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                        <label id="correct-answer-label">Correct Answer</label>
+                        <Select
+                            labelId="correct-answer-label"
+                            value={
+                                correctAnswerIndex !== null
+                                    ? correctAnswerIndex
+                                    : ""
+                            }
+                            onChange={handleCorrectAnswerChange}
+                        >
+                            {options.map((option, index) => (
+                                <MenuItem key={index} value={index}>
+                                    {option.text}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        type="submit"
+                        fullWidth
+                        sx={{ mb: 1 }} // Add some margin below the button
+                    >
+                        {editMode ? "Update Question" : "Create Question"}
                     </Button>
+
+                    {editMode && (
+                        <Button
+                            variant="outlined"
+                            color="secondary"
+                            onClick={resetForm}
+                            fullWidth
+                        >
+                            Cancel Edit
+                        </Button>
+                    )}
+                </Box>
+
+                <h3 style={{ marginTop: "30px" }}>Questions List</h3>
+
+                {loading ? (
+                    <CircularProgress />
+                ) : (
+                    questionsList.map((q, index) => (
+                        <Card key={q.id} sx={{ bgcolor: "beige", mb: 2 }}>
+                            <CardContent>
+                                <Typography variant="h6">
+                                    {index + 1}. {q.text}{" "}
+                                    <span style={{ color: "red" }}>*</span>
+                                </Typography>
+                                <ul>
+                                    {q.options.map((opt) => (
+                                        <li key={opt.id}>
+                                            {opt.text}{" "}
+                                            {opt.isCorrect ? "(Correct)" : ""}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    sx={{ mr: 2 }}
+                                    onClick={() => handleEdit(q)}
+                                >
+                                    Edit
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    color="secondary"
+                                    onClick={() => handleDelete(q.id)}
+                                >
+                                    Delete
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ))
                 )}
-            </form>
-
-            <h3 style={{ marginTop: "30px" }}>Questions List</h3>
-
-            {loading ? (
-                <CircularProgress />
-            ) : (
-                questionsList.map((q) => (
-                    <Card key={q.id} sx={{ mb: 2 }}>
-                        <CardContent>
-                            <Typography variant="h6">{q.text}</Typography>
-                            <ul>
-                                {q.options.map((opt) => (
-                                    <li key={opt.id}>
-                                        {opt.text}{" "}
-                                        {opt.isCorrect ? "(Correct)" : ""}
-                                    </li>
-                                ))}
-                            </ul>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                sx={{ mr: 2 }}
-                                onClick={() => handleEdit(q)}
-                            >
-                                Edit
-                            </Button>
-                            <Button
-                                variant="contained"
-                                color="secondary"
-                                onClick={() => handleDelete(q.id)}
-                            >
-                                Delete
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ))
-            )}
-        </Box>
+            </Box>
+            <Typography variant="body2" sx={{ mt: 2 }} align="center">
+                Want to log out?{" "}
+                <Link to="#" onClick={handleLogout}>
+                    Logout
+                </Link>
+            </Typography>
+        </>
     );
 }
 
